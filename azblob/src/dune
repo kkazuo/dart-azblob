@@ -1,0 +1,4 @@
+(library
+ (name azblob)
+ (public_name azblob)
+ (libraries base base64 cryptokit cohttp uri))

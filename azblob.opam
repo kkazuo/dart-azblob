@@ -1,0 +1,24 @@
+opam-version: "2.0"
+name: "azblob"
+version: "0.1.0"
+synopsis: "A trivial Azure Blob Storage interface for OCaml"
+description: """
+"""
+maintainer: "obiwanko@me.com"
+authors: ["Kazuo Koga"]
+license: "ISC"
+homepage: "https://github.com/kkazuo/azblob"
+bug-reports: "https://github.com/kkazuo/azblob/issues"
+dev-repo: "git+https://github.com/kkazuo/azblob.git"
+depends: [
+  "ocaml"           {>= "4.03.0"}
+  "base"            {>= "v0.12.0"}
+  "base64"          {>= "3.2.0"}
+  "cohttp"          {>= "2.4.0"}
+  "uri"             {>= "3.0.0"}
+  "cryptokit"       {>= "1.13"}
+  "dune"            {build & >= "1.0.1"}
+]
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
