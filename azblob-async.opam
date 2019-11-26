@@ -1,6 +1,5 @@
 opam-version: "2.0"
 name: "azblob-async"
-version: "0.1.0"
 synopsis: "A trivial Azure Blob Storage interface for OCaml"
 description: """
 """
