@@ -6,15 +6,15 @@ install: wget https://raw.githubusercontent.com/ocaml/ocaml-travisci-skeleton/ma
 script: bash ./.travis-docker.sh
 env:
  global:
-   - PACKAGE="azblob-async"
+   - PACKAGE="azblob"
    - PRE_INSTALL_HOOK="cd /home/opam/opam-repository && git pull origin master && opam update -uy"
    - POST_INSTALL_HOOK="true"
-   - PINS="azblob.dev:. azblob-async.dev:."
+   # - PINS="azblob.dev:. azblob-async.dev:."
    - REVDEPS="cohttp-async"
  matrix:
    - DISTRO=centos OCAML_VERSION=4.04
    - DISTRO=fedora OCAML_VERSION=4.04
    - DISTRO=debian-testing OCAML_VERSION=4.05
    - DISTRO=alpine OCAML_VERSION=4.06
-   - DISTRO=debian-stable OCAML_VERSION=4.07
+   - DISTRO=debian-stable OCAML_VERSION=4.07 DEPOPTS="azblob-async"
    - DISTRO=alpine OCAML_VGERSION=4.08
