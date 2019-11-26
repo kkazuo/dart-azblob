@@ -1,3 +1,4 @@
+open Sexplib0
 open Cohttp
 
 module Conn: sig
@@ -7,6 +8,9 @@ module Conn: sig
     protocol: string;
     suffix: string;
   }
+  val t_of_sexp : Sexp.t -> t
+  val sexp_of_t : t -> Sexp.t
+  val equal : t -> t -> bool
 
   (** [init] returns default. *)
   val init : t

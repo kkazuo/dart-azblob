@@ -1,5 +1,6 @@
 open Base
 open Cohttp
+open Sexplib0.Sexp_conv
 
 module Conn = struct
   type t = {
@@ -7,7 +8,13 @@ module Conn = struct
     name: string;
     protocol: string;
     suffix: string;
-  }
+  } [@@deriving sexp]
+
+  let equal x y =
+    String.equal x.key y.key &&
+    String.equal x.name y.name &&
+    String.equal x.protocol y.protocol &&
+    String.equal x.suffix y.suffix
 
   let init = {
     key = ""; name = ""; protocol = "https"; suffix = "core.windows.net"
