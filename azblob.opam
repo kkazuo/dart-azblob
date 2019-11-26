@@ -11,14 +11,14 @@ homepage: "https://github.com/kkazuo/azblob"
 bug-reports: "https://github.com/kkazuo/azblob/issues"
 dev-repo: "git+https://github.com/kkazuo/azblob.git"
 depends: [
-  "base"            {>= "v0.12.0"}
+  "base"            {>= "v0.11.0"}
   "ppx_sexp_conv"
   "sexplib0"
-  "base64"          {>= "3.2.0"}
+  "base64"
   "cohttp"          {>= "2.4.0"}
-  "uri"             {>= "3.0.0"}
-  "cryptokit"       {>= "1.13"}
-  "dune"            {build & >= "1.2.0"}
+  "uri"
+  "cryptokit"       {>= "1.14"}
+  "dune"
 ]
 build: [
   ["dune" "build" "-p" name "-j" jobs]
