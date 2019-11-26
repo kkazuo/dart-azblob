@@ -14,7 +14,7 @@ depends: [
   "cohttp"
   "cohttp-async"    {>= "2.4.0"}
   "azblob"          {= version}
-  "dune"
+  "dune"            {>= "1.11"}
 ]
 build: [
   ["dune" "subst"] {pinned}
