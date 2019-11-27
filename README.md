@@ -1,5 +1,14 @@
 # Azblob -- A trivial Azure Blob Storage interface for OCaml
 
+You can get, put, append and delete blobs.
+
+We use Azure Blob REST API,
+and this library depends as small as possible
+and provides raw http response.
+
+You can also reads [Azure Blob Storage API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api).
+
+
 ## Usage
 
 ```
