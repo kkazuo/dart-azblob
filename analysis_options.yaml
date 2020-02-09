@@ -10,6 +10,6 @@ include: package:effective_dart/analysis_options.yaml
 #   rules:
 #     - camel_case_types
 
-analyzer:
+#analyzer:
 #   exclude:
 #     - path/to/excluded/files/**

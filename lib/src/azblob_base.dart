@@ -134,7 +134,7 @@ class AzureStorage {
     sign(request);
     var res = await request.send();
     if (res.statusCode == 201) {
-      res.stream.drain();
+      await res.stream.drain();
       if (type == BlobType.AppendBlob && (body != null || bodyBytes != null)) {
         await appendBlock(path, body: body, bodyBytes: bodyBytes);
       }
@@ -142,7 +142,7 @@ class AzureStorage {
     }
 
     var message = await res.stream.bytesToString();
-    throw new AzureStorageException(message, res.statusCode, res.headers);
+    throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
   /// Append block to blob.
@@ -158,11 +158,11 @@ class AzureStorage {
     sign(request);
     var res = await request.send();
     if (res.statusCode == 201) {
-      res.stream.drain();
+      await res.stream.drain();
       return;
     }
 
     var message = await res.stream.bytesToString();
-    throw new AzureStorageException(message, res.statusCode, res.headers);
+    throw AzureStorageException(message, res.statusCode, res.headers);
   }
 }
