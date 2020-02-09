@@ -1,5 +1,7 @@
 name: azblob
-description: A trivial Azure Blob Storage client.
+description: |
+  A trivial Azure Blob Storage client.
+  You can get and put Blob on server side dart.
 version: 1.0.1
 homepage: https://github.com
 
