@@ -30,16 +30,20 @@ class AzureStorage {
 
   /// Initialize with connection string.
   AzureStorage.parse(String connectionString) {
-    Map<String, String> m = {};
-    var items = connectionString.split(';');
-    for (var item in items) {
-      var i = item.indexOf('=');
-      var key = item.substring(0, i);
-      var val = item.substring(i + 1);
-      m[key] = val;
+    try {
+      Map<String, String> m = {};
+      var items = connectionString.split(';');
+      for (var item in items) {
+        var i = item.indexOf('=');
+        var key = item.substring(0, i);
+        var val = item.substring(i + 1);
+        m[key] = val;
+      }
+      config = m;
+      accountKey = base64Decode(config[AccountKey]);
+    } catch (e) {
+      throw Exception('Parse error.');
     }
-    config = m;
-    accountKey = base64Decode(config[AccountKey]);
   }
 
   @override
