@@ -9,7 +9,7 @@ env:
    - PACKAGE="azblob"
    - PRE_INSTALL_HOOK="cd /home/opam/opam-repository && git pull origin master && opam update -uy"
    - POST_INSTALL_HOOK="true"
-   - PINS="azblob.0.1.0:. azblob-async.0.1.0:."
+   - PINS="azblob.0.1.1:. azblob-async.0.1.1:."
    - REVDEPS="cohttp-async"
  matrix:
    #- DISTRO=centos OCAML_VERSION=4.04
