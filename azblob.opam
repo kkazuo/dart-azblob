@@ -15,7 +15,7 @@ depends: [
   "ppx_sexp_conv"
   "sexplib0"
   "base64"
-  "cohttp"          {>= "2.4.0"}
+  "cohttp"          {>= "2.4.0" & < "3.0.0"}
   "uri"
   "cryptokit"       {>= "1.14"}
   "dune"            {>= "1.11"}
