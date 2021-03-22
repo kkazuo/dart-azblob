@@ -20,8 +20,8 @@ class AzureStorageException implements Exception {
 
 /// Azure Storage Client
 class AzureStorage {
-  Map<String, String> config;
-  Uint8List accountKey;
+  late Map<String, String> config;
+  late Uint8List accountKey;
 
   static final String DefaultEndpointsProtocol = 'DefaultEndpointsProtocol';
   static final String EndpointSuffix = 'EndpointSuffix';
@@ -31,7 +31,7 @@ class AzureStorage {
   /// Initialize with connection string.
   AzureStorage.parse(String connectionString) {
     try {
-      Map<String, String> m = {};
+      var m = <String, String>{};
       var items = connectionString.split(';');
       for (var item in items) {
         var i = item.indexOf('=');
@@ -40,7 +40,7 @@ class AzureStorage {
         m[key] = val;
       }
       config = m;
-      accountKey = base64Decode(config[AccountKey]);
+      accountKey = base64Decode(config[AccountKey]!);
     } catch (e) {
       throw Exception('Parse error.');
     }
@@ -51,13 +51,13 @@ class AzureStorage {
     return config.toString();
   }
 
-  Uri uri({String path = '/', Map<String, String> queryParameters}) {
+  Uri uri({String path = '/', Map<String, String>? queryParameters}) {
     var scheme = config[DefaultEndpointsProtocol] ?? 'https';
     var suffix = config[EndpointSuffix] ?? 'core.windows.net';
     var name = config[AccountName];
     return Uri(
         scheme: scheme,
-        host: '${name}.blob.${suffix}',
+        host: '$name.blob.$suffix',
         path: path,
         queryParameters: queryParameters);
   }
@@ -65,7 +65,7 @@ class AzureStorage {
   String _canonicalHeaders(Map<String, String> headers) {
     var keys = headers.keys
         .where((i) => i.startsWith('x-ms-'))
-        .map((i) => '${i}:${headers[i]}\n')
+        .map((i) => '$i:${headers[i]}\n')
         .toList();
     keys.sort();
     return keys.join();
@@ -77,7 +77,7 @@ class AzureStorage {
     }
     var keys = items.keys.toList();
     keys.sort();
-    return keys.map((i) => '\n${i}:${items[i]}').join();
+    return keys.map((i) => '\n$i:${items[i]}').join();
   }
 
   void sign(http.Request request) {
@@ -99,10 +99,10 @@ class AzureStorage {
     var name = config[AccountName];
     var path = request.url.path;
     var sig =
-        '${request.method}\n${ce}\n${cl}\n${cz}\n${cm}\n${ct}\n${dt}\n${ims}\n${imt}\n${inm}\n${ius}\n${ran}\n${chs}/${name}${path}${crs}';
+        '${request.method}\n$ce\n$cl\n$cz\n$cm\n$ct\n$dt\n$ims\n$imt\n$inm\n$ius\n$ran\n$chs/$name$path$crs';
     var mac = crypto.Hmac(crypto.sha256, accountKey);
     var digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
-    var auth = 'SharedKey ${name}:${digest}';
+    var auth = 'SharedKey $name:$digest';
     request.headers['Authorization'] = auth;
     //print(sig);
   }
@@ -118,14 +118,14 @@ class AzureStorage {
   ///
   /// `body` and `bodyBytes` are exclusive and mandatory.
   Future<void> putBlob(String path,
-      {String body,
-      Uint8List bodyBytes,
-      String contentType,
+      {String? body,
+      Uint8List? bodyBytes,
+      String? contentType,
       BlobType type = BlobType.BlockBlob}) async {
     var request = http.Request('PUT', uri(path: path));
     request.headers['x-ms-blob-type'] =
         type.toString() == 'BlobType.AppendBlob' ? 'AppendBlob' : 'BlockBlob';
-    request.headers['content-type'] = contentType;
+    if (contentType != null) request.headers['content-type'] = contentType;
     if (type == BlobType.BlockBlob) {
       if (bodyBytes != null) {
         request.bodyBytes = bodyBytes;
@@ -151,7 +151,7 @@ class AzureStorage {
 
   /// Append block to blob.
   Future<void> appendBlock(String path,
-      {String body, Uint8List bodyBytes}) async {
+      {String? body, Uint8List? bodyBytes}) async {
     var request = http.Request(
         'PUT', uri(path: path, queryParameters: {'comp': 'appendblock'}));
     if (bodyBytes != null) {
