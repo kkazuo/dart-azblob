@@ -1,5 +1,7 @@
 A trivial Azure Blob Storage client.
 
+![workflow](https://github.com/kkazuo/dart-azblob/actions/workflows/dart.yml/badge.svg)
+
 ## Usage
 
 A simple usage example:
