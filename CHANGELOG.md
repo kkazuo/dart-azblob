@@ -1,3 +1,7 @@
+## 2.1.0
+
+- Added dynamic headers (@NetFreaker)
+
 ## 2.0.1
 
 - Update deps
