@@ -122,12 +122,12 @@ class AzureStorage {
       Uint8List? bodyBytes,
       String? contentType,
       BlobType type = BlobType.BlockBlob,
-      Map<String, String>? metadata}) async {
+      Map<String, String>? headers}) async {
     var request = http.Request('PUT', uri(path: path));
     request.headers['x-ms-blob-type'] =
         type.toString() == 'BlobType.AppendBlob' ? 'AppendBlob' : 'BlockBlob';
-    if (metadata != null) {
-      metadata.forEach((key, value) {
+    if (headers != null) {
+      headers.forEach((key, value) {
         request.headers['x-ms-meta-$key'] = value;
       });
     }
