@@ -121,10 +121,16 @@ class AzureStorage {
       {String? body,
       Uint8List? bodyBytes,
       String? contentType,
-      BlobType type = BlobType.BlockBlob}) async {
+      BlobType type = BlobType.BlockBlob,
+      Map<String, String>? headers}) async {
     var request = http.Request('PUT', uri(path: path));
     request.headers['x-ms-blob-type'] =
         type.toString() == 'BlobType.AppendBlob' ? 'AppendBlob' : 'BlockBlob';
+    if (headers != null) {
+      headers.forEach((key, value) {
+        request.headers['x-ms-meta-$key'] = value;
+      });
+    }
     if (contentType != null) request.headers['content-type'] = contentType;
     if (type == BlobType.BlockBlob) {
       if (bodyBytes != null) {
