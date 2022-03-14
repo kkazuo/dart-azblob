@@ -114,6 +114,40 @@ class AzureStorage {
     return request.send();
   }
 
+  String _signedExpiry(DateTime? expiry) {
+    var str = (expiry ?? DateTime.now().add(const Duration(hours: 1)))
+        .toUtc()
+        .toIso8601String();
+    return str.substring(0, str.indexOf('.')) + 'Z';
+  }
+
+  /// Get Blob Link.
+  Future<Uri> getBlobLink(String path, {DateTime? expiry}) async {
+    var signedPermissions = 'r';
+    var signedStart = '';
+    var signedExpiry = _signedExpiry(expiry);
+    var signedIdentifier = '';
+    var signedVersion = '2012-02-12';
+    var name = config[AccountName];
+    var canonicalizedResource = '/$name$path';
+    var str = '$signedPermissions\n'
+        '$signedStart\n'
+        '$signedExpiry\n'
+        '$canonicalizedResource\n'
+        '$signedIdentifier\n'
+        '$signedVersion';
+    var mac = crypto.Hmac(crypto.sha256, accountKey);
+    var sig = base64Encode(mac.convert(utf8.encode(str)).bytes);
+    return uri(path: path, queryParameters: {
+      'sr': 'b',
+      'sp': signedPermissions,
+      'se': signedExpiry,
+      'sv': signedVersion,
+      'spr': 'https',
+      'sig': sig,
+    });
+  }
+
   /// Put Blob.
   ///
   /// `body` and `bodyBytes` are exclusive and mandatory.
