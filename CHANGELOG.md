@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Add supports of Blob URL with SAS token
+
 ## 2.1.0
 
 - Added dynamic headers (@NetFreaker)
