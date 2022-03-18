@@ -82,7 +82,7 @@ class AzureStorage {
 
   void sign(http.Request request) {
     request.headers['x-ms-date'] = HttpDate.format(DateTime.now());
-    request.headers['x-ms-version'] = '2016-05-31';
+    request.headers['x-ms-version'] = '2019-12-12';
     var ce = request.headers['Content-Encoding'] ?? '';
     var cl = request.headers['Content-Language'] ?? '';
     var cz = request.contentLength == 0 ? '' : '${request.contentLength}';

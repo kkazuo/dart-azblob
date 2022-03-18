@@ -1,3 +1,7 @@
+## 2.2.1
+
+- Fix ms-version to 2019-12-12 for Blob size limit.
+
 ## 2.2.0
 
 - Add supports of Blob URL with SAS token
