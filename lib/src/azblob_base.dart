@@ -114,6 +114,13 @@ class AzureStorage {
     return request.send();
   }
 
+  /// Delete Blob
+  Future<http.StreamedResponse> deleteBlob(String path) async {
+    var request = http.Request('DELETE', uri(path: path));
+    sign(request);
+    return request.send();
+  }
+
   String _signedExpiry(DateTime? expiry) {
     var str = (expiry ?? DateTime.now().add(const Duration(hours: 1)))
         .toUtc()
