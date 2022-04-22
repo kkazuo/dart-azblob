@@ -1,3 +1,7 @@
+## 2.3.0
+
+- Add method to delete from Azure Storage. (@GabeDiamond)
+
 ## 2.2.1
 
 - Fix ms-version to 2019-12-12 for Blob size limit.
