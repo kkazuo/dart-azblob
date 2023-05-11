@@ -125,7 +125,7 @@ class AzureStorage {
     var str = (expiry ?? DateTime.now().add(const Duration(hours: 1)))
         .toUtc()
         .toIso8601String();
-    return str.substring(0, str.indexOf('.')) + 'Z';
+    return '${str.substring(0, str.indexOf('.'))}Z';
   }
 
   /// Get Blob Link.
