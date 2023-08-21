@@ -1,3 +1,7 @@
+## 2.4.1
+
+- Update http ^1.0.0
+
 ## 2.4.0
 
 - Supports Dart 3
