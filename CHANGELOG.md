@@ -1,6 +1,7 @@
 ## 2.4.1
 
 - Update http ^1.0.0
+- Fix lints
 
 ## 2.4.0
 

@@ -6,8 +6,8 @@ import 'package:crypto/crypto.dart' as crypto;
 
 /// Blob type
 enum BlobType {
-  BlockBlob,
-  AppendBlob,
+  blockBlob,
+  appendBlob,
 }
 
 /// Azure Storage Exception
@@ -15,6 +15,7 @@ class AzureStorageException implements Exception {
   final String message;
   final int statusCode;
   final Map<String, String> headers;
+
   AzureStorageException(this.message, this.statusCode, this.headers);
 }
 
@@ -23,9 +24,11 @@ class AzureStorage {
   late Map<String, String> config;
   late Uint8List accountKey;
 
-  static final String DefaultEndpointsProtocol = 'DefaultEndpointsProtocol';
-  static final String EndpointSuffix = 'EndpointSuffix';
-  static final String AccountName = 'AccountName';
+  static final String defaultEndpointsProtocol = 'DefaultEndpointsProtocol';
+  static final String endpointSuffix = 'EndpointSuffix';
+  static final String accountName = 'AccountName';
+
+  // ignore: non_constant_identifier_names
   static final String AccountKey = 'AccountKey';
 
   /// Initialize with connection string.
@@ -52,9 +55,9 @@ class AzureStorage {
   }
 
   Uri uri({String path = '/', Map<String, String>? queryParameters}) {
-    var scheme = config[DefaultEndpointsProtocol] ?? 'https';
-    var suffix = config[EndpointSuffix] ?? 'core.windows.net';
-    var name = config[AccountName];
+    var scheme = config[defaultEndpointsProtocol] ?? 'https';
+    var suffix = config[endpointSuffix] ?? 'core.windows.net';
+    var name = config[accountName];
     return Uri(
         scheme: scheme,
         host: '$name.blob.$suffix',
@@ -96,7 +99,7 @@ class AzureStorage {
     var ran = request.headers['Range'] ?? '';
     var chs = _canonicalHeaders(request.headers);
     var crs = _canonicalResources(request.url.queryParameters);
-    var name = config[AccountName];
+    var name = config[accountName];
     var path = request.url.path;
     var sig =
         '${request.method}\n$ce\n$cl\n$cz\n$cm\n$ct\n$dt\n$ims\n$imt\n$inm\n$ius\n$ran\n$chs/$name$path$crs';
@@ -135,7 +138,7 @@ class AzureStorage {
     var signedExpiry = _signedExpiry(expiry);
     var signedIdentifier = '';
     var signedVersion = '2012-02-12';
-    var name = config[AccountName];
+    var name = config[accountName];
     var canonicalizedResource = '/$name$path';
     var str = '$signedPermissions\n'
         '$signedStart\n'
@@ -162,7 +165,7 @@ class AzureStorage {
       {String? body,
       Uint8List? bodyBytes,
       String? contentType,
-      BlobType type = BlobType.BlockBlob,
+      BlobType type = BlobType.blockBlob,
       Map<String, String>? headers}) async {
     var request = http.Request('PUT', uri(path: path));
     request.headers['x-ms-blob-type'] =
@@ -173,7 +176,7 @@ class AzureStorage {
       });
     }
     if (contentType != null) request.headers['content-type'] = contentType;
-    if (type == BlobType.BlockBlob) {
+    if (type == BlobType.blockBlob) {
       if (bodyBytes != null) {
         request.bodyBytes = bodyBytes;
       } else if (body != null) {
@@ -186,7 +189,7 @@ class AzureStorage {
     var res = await request.send();
     if (res.statusCode == 201) {
       await res.stream.drain();
-      if (type == BlobType.AppendBlob && (body != null || bodyBytes != null)) {
+      if (type == BlobType.appendBlob && (body != null || bodyBytes != null)) {
         await appendBlock(path, body: body, bodyBytes: bodyBytes);
       }
       return;
