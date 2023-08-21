@@ -4,6 +4,10 @@
 - Fix lints
 - Use http_parser instead of dart:io to support Web
 
+Breaking:
+
+- Rename BlobType symbol.
+
 ## 2.4.0
 
 - Supports Dart 3

@@ -6,8 +6,13 @@ import 'package:http_parser/http_parser.dart';
 
 /// Blob type
 enum BlobType {
-  blockBlob,
-  appendBlob,
+  blockBlob('BlockBlob'),
+  appendBlob('AppendBlob'),
+  ;
+
+  const BlobType(this.displayName);
+
+  final String displayName;
 }
 
 /// Azure Storage Exception
@@ -168,8 +173,7 @@ class AzureStorage {
       BlobType type = BlobType.blockBlob,
       Map<String, String>? headers}) async {
     var request = http.Request('PUT', uri(path: path));
-    request.headers['x-ms-blob-type'] =
-        type.toString() == 'BlobType.AppendBlob' ? 'AppendBlob' : 'BlockBlob';
+    request.headers['x-ms-blob-type'] = type.displayName;
     if (headers != null) {
       headers.forEach((key, value) {
         request.headers['x-ms-meta-$key'] = value;
