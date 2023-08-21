@@ -1,7 +1,8 @@
-## 2.4.1
+## 2.5.0
 
 - Update http ^1.0.0
 - Fix lints
+- Use http_parser instead of dart:io to support Web
 
 ## 2.4.0
 

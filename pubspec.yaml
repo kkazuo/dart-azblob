@@ -2,7 +2,7 @@ name: azblob
 description: |
   A trivial Azure Blob Storage client.
   You can get and put Blob on server side dart.
-version: 2.4.1
+version: 2.5.0
 homepage: https://github.com/kkazuo/dart-azblob
 
 environment:
@@ -10,6 +10,7 @@ environment:
 
 dependencies:
   http:  ^1.0.0
+  http_parser: ^4.0.0
   crypto: ^3.0.3
 
 dev_dependencies:

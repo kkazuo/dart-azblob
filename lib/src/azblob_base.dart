@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:http_parser/http_parser.dart';
 
 /// Blob type
 enum BlobType {
@@ -84,7 +84,7 @@ class AzureStorage {
   }
 
   void sign(http.Request request) {
-    request.headers['x-ms-date'] = HttpDate.format(DateTime.now());
+    request.headers['x-ms-date'] = formatHttpDate(DateTime.now());
     request.headers['x-ms-version'] = '2019-12-12';
     var ce = request.headers['Content-Encoding'] ?? '';
     var cl = request.headers['Content-Language'] ?? '';
