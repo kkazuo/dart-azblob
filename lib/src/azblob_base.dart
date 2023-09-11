@@ -115,6 +115,29 @@ class AzureStorage {
     //print(sig);
   }
 
+  (String, String?) _splitPathSegment(String path) {
+    final p = path.startsWith('/') ? path.substring(1) : path;
+    final i = p.indexOf('/');
+    if (i < 0 || p.length < i + 2) return (p, null);
+    return (p.substring(0, i), p.substring(i + 1));
+  }
+
+  /// List Blobs. (Raw API)
+  ///
+  /// You cat use `await response.stream.bytesToString();` to get blob listing as XML format.
+  Future<http.StreamedResponse> listBlobsRaw(String path) async {
+    var (container, rest) = _splitPathSegment(path);
+    var request = http.Request(
+        'GET',
+        uri(path: container, queryParameters: {
+          "restype": "container",
+          "comp": "list",
+          if (rest != null) "prefix": rest,
+        }));
+    sign(request);
+    return request.send();
+  }
+
   /// Get Blob.
   Future<http.StreamedResponse> getBlob(String path) async {
     var request = http.Request('GET', uri(path: path));

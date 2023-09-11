@@ -1,3 +1,7 @@
+## 2.6.0
+
+- Add list blobs API (Raw XML format)
+
 ## 2.5.0
 
 - Update http ^1.0.0
