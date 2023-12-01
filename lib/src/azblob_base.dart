@@ -32,26 +32,26 @@ class AzureStorage {
 
   final _client = http.newUniversalHttpClient();
 
-  static final String defaultEndpointsProtocol = 'DefaultEndpointsProtocol';
-  static final String endpointSuffix = 'EndpointSuffix';
-  static final String accountName = 'AccountName';
+  static const String defaultEndpointsProtocol = 'DefaultEndpointsProtocol';
+  static const String endpointSuffix = 'EndpointSuffix';
+  static const String accountName = 'AccountName';
 
   // ignore: non_constant_identifier_names
-  static final String AccountKey = 'AccountKey';
+  static const String accountKey_ = 'AccountKey';
 
   /// Initialize with connection string.
   AzureStorage.parse(String connectionString) {
     try {
-      var m = <String, String>{};
-      var items = connectionString.split(';');
-      for (var item in items) {
-        var i = item.indexOf('=');
-        var key = item.substring(0, i);
-        var val = item.substring(i + 1);
+      final m = <String, String>{};
+      final items = connectionString.split(';');
+      for (final item in items) {
+        final i = item.indexOf('=');
+        final key = item.substring(0, i);
+        final val = item.substring(i + 1);
         m[key] = val;
       }
       config = m;
-      accountKey = base64Decode(config[AccountKey]!);
+      accountKey = base64Decode(config[accountKey_]!);
     } catch (e) {
       throw Exception('Parse error.');
     }
@@ -68,14 +68,15 @@ class AzureStorage {
   }
 
   Uri uri({String path = '/', Map<String, String>? queryParameters}) {
-    var scheme = config[defaultEndpointsProtocol] ?? 'https';
-    var suffix = config[endpointSuffix] ?? 'core.windows.net';
-    var name = config[accountName];
+    final scheme = config[defaultEndpointsProtocol] ?? 'https';
+    final suffix = config[endpointSuffix] ?? 'core.windows.net';
+    final name = config[accountName];
     return Uri(
-        scheme: scheme,
-        host: '$name.blob.$suffix',
-        path: path,
-        queryParameters: queryParameters);
+      scheme: scheme,
+      host: '$name.blob.$suffix',
+      path: path,
+      queryParameters: queryParameters,
+    );
   }
 
   String _canonicalHeaders(http.HttpHeaders headers) {
@@ -92,7 +93,7 @@ class AzureStorage {
     if (items.isEmpty) {
       return '';
     }
-    var keys = items.keys.toList();
+    final keys = items.keys.toList();
     keys.sort();
     return keys.map((i) => '\n$i:${items[i]}').join();
   }
@@ -100,26 +101,26 @@ class AzureStorage {
   void sign(http.HttpClientRequest request) {
     request.headers.set('x-ms-date', formatHttpDate(DateTime.now()));
     request.headers.set('x-ms-version', '2019-12-12');
-    var ce = request.headers['Content-Encoding'] ?? '';
-    var cl = request.headers['Content-Language'] ?? '';
-    var cz = request.contentLength <= 0 ? '' : '${request.contentLength}';
-    var cm = request.headers['Content-MD5'] ?? '';
-    var ct = request.headers['Content-Type'] ?? '';
-    var dt = request.headers['Date'] ?? '';
-    var ims = request.headers['If-Modified-Since'] ?? '';
-    var imt = request.headers['If-Match'] ?? '';
-    var inm = request.headers['If-None-Match'] ?? '';
-    var ius = request.headers['If-Unmodified-Since'] ?? '';
-    var ran = request.headers['Range'] ?? '';
-    var chs = _canonicalHeaders(request.headers);
-    var crs = _canonicalResources(request.uri.queryParameters);
-    var name = config[accountName];
-    var path = request.uri.path;
-    var sig =
+    final ce = request.headers['Content-Encoding'] ?? '';
+    final cl = request.headers['Content-Language'] ?? '';
+    final cz = request.contentLength <= 0 ? '' : '${request.contentLength}';
+    final cm = request.headers['Content-MD5'] ?? '';
+    final ct = request.headers['Content-Type'] ?? '';
+    final dt = request.headers['Date'] ?? '';
+    final ims = request.headers['If-Modified-Since'] ?? '';
+    final imt = request.headers['If-Match'] ?? '';
+    final inm = request.headers['If-None-Match'] ?? '';
+    final ius = request.headers['If-Unmodified-Since'] ?? '';
+    final ran = request.headers['Range'] ?? '';
+    final chs = _canonicalHeaders(request.headers);
+    final crs = _canonicalResources(request.uri.queryParameters);
+    final name = config[accountName];
+    final path = request.uri.path;
+    final sig =
         '${request.method}\n$ce\n$cl\n$cz\n$cm\n$ct\n$dt\n$ims\n$imt\n$inm\n$ius\n$ran\n$chs/$name$path$crs';
-    var mac = crypto.Hmac(crypto.sha256, accountKey);
-    var digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
-    var auth = 'SharedKey $name:$digest';
+    final mac = crypto.Hmac(crypto.sha256, accountKey);
+    final digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
+    final auth = 'SharedKey $name:$digest';
     request.headers.set('Authorization', auth);
     // print('sig=\n$sig\n');
   }
@@ -135,14 +136,18 @@ class AzureStorage {
   ///
   /// You cat use `(await response.transform(Utf8Decoder()).toList()).join();` to get blob listing as XML format.
   Future<http.HttpClientResponse> listBlobsRaw(String path) async {
-    var (container, rest) = _splitPathSegment(path);
-    var request = await _client.openUrl(
-        'GET',
-        uri(path: container, queryParameters: {
+    final (container, rest) = _splitPathSegment(path);
+    final request = await _client.openUrl(
+      'GET',
+      uri(
+        path: container,
+        queryParameters: {
           "restype": "container",
           "comp": "list",
           if (rest != null) "prefix": rest,
-        }));
+        },
+      ),
+    );
     sign(request);
     return request.close();
   }
@@ -156,13 +161,13 @@ class AzureStorage {
 
   /// Delete Blob
   Future<http.HttpClientResponse> deleteBlob(String path) async {
-    var request = await _client.openUrl('DELETE', uri(path: path));
+    final request = await _client.openUrl('DELETE', uri(path: path));
     sign(request);
     return request.close();
   }
 
   String _signedExpiry(DateTime? expiry) {
-    var str = (expiry ?? DateTime.now().add(const Duration(hours: 1)))
+    final str = (expiry ?? DateTime.now().add(const Duration(hours: 1)))
         .toUtc()
         .toIso8601String();
     return '${str.substring(0, str.indexOf('.'))}Z';
@@ -170,41 +175,46 @@ class AzureStorage {
 
   /// Get Blob Link.
   Future<Uri> getBlobLink(String path, {DateTime? expiry}) async {
-    var signedPermissions = 'r';
-    var signedStart = '';
-    var signedExpiry = _signedExpiry(expiry);
-    var signedIdentifier = '';
-    var signedVersion = '2012-02-12';
-    var name = config[accountName];
-    var canonicalizedResource = '/$name$path';
-    var str = '$signedPermissions\n'
+    const signedPermissions = 'r';
+    const signedStart = '';
+    final signedExpiry = _signedExpiry(expiry);
+    const signedIdentifier = '';
+    const signedVersion = '2012-02-12';
+    final name = config[accountName];
+    final canonicalizedResource = '/$name$path';
+    final str = '$signedPermissions\n'
         '$signedStart\n'
         '$signedExpiry\n'
         '$canonicalizedResource\n'
         '$signedIdentifier\n'
         '$signedVersion';
-    var mac = crypto.Hmac(crypto.sha256, accountKey);
-    var sig = base64Encode(mac.convert(utf8.encode(str)).bytes);
-    return uri(path: path, queryParameters: {
-      'sr': 'b',
-      'sp': signedPermissions,
-      'se': signedExpiry,
-      'sv': signedVersion,
-      'spr': 'https',
-      'sig': sig,
-    });
+    final mac = crypto.Hmac(crypto.sha256, accountKey);
+    final sig = base64Encode(mac.convert(utf8.encode(str)).bytes);
+    return uri(
+      path: path,
+      queryParameters: {
+        'sr': 'b',
+        'sp': signedPermissions,
+        'se': signedExpiry,
+        'sv': signedVersion,
+        'spr': 'https',
+        'sig': sig,
+      },
+    );
   }
 
   /// Put Blob.
   ///
   /// `body` and `bodyBytes` are exclusive and mandatory.
-  Future<void> putBlob(String path,
-      {String? body,
-      Uint8List? bodyBytes,
-      String? contentType,
-      BlobType type = BlobType.blockBlob,
-      Map<String, String>? headers}) async {
-    var request = await _client.openUrl('PUT', uri(path: path));
+  Future<void> putBlob(
+    String path, {
+    String? body,
+    Uint8List? bodyBytes,
+    String? contentType,
+    BlobType type = BlobType.blockBlob,
+    Map<String, String>? headers,
+  }) async {
+    final request = await _client.openUrl('PUT', uri(path: path));
     request.headers.set('x-ms-blob-type', type.displayName);
     if (headers != null) {
       headers.forEach((key, value) {
@@ -230,7 +240,7 @@ class AzureStorage {
     } else {
       sign(request);
     }
-    var res = await request.close();
+    final res = await request.close();
     if (res.statusCode == 201) {
       await res.drain();
       if (type == BlobType.appendBlob && (body != null || bodyBytes != null)) {
@@ -239,15 +249,17 @@ class AzureStorage {
       return;
     }
 
-    var message = (await res.transform(const Utf8Decoder()).toList()).join();
-    print(message);
+    final message = (await res.transform(const Utf8Decoder()).toList()).join();
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
   /// Append block to blob.
-  Future<void> appendBlock(String path,
-      {String? body, Uint8List? bodyBytes}) async {
-    var request = await _client.openUrl(
+  Future<void> appendBlock(
+    String path, {
+    String? body,
+    Uint8List? bodyBytes,
+  }) async {
+    final request = await _client.openUrl(
       'PUT',
       uri(path: path, queryParameters: {'comp': 'appendblock'}),
     );
@@ -261,13 +273,13 @@ class AzureStorage {
       sign(request);
       request.add(bytes);
     }
-    var res = await request.close();
+    final res = await request.close();
     if (res.statusCode == 201) {
       await res.drain();
       return;
     }
 
-    var message = (await res.transform(const Utf8Decoder()).toList()).join();
+    final message = (await res.transform(const Utf8Decoder()).toList()).join();
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 }
