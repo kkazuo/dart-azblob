@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:http_parser/http_parser.dart';
+import 'package:universal_io/io.dart' as http;
 
 /// Blob type
 enum BlobType {
@@ -19,7 +20,7 @@ enum BlobType {
 class AzureStorageException implements Exception {
   final String message;
   final int statusCode;
-  final Map<String, String> headers;
+  final http.HttpHeaders headers;
 
   AzureStorageException(this.message, this.statusCode, this.headers);
 }
@@ -28,6 +29,8 @@ class AzureStorageException implements Exception {
 class AzureStorage {
   late Map<String, String> config;
   late Uint8List accountKey;
+
+  final _client = http.newUniversalHttpClient();
 
   static final String defaultEndpointsProtocol = 'DefaultEndpointsProtocol';
   static final String endpointSuffix = 'EndpointSuffix';
@@ -54,6 +57,11 @@ class AzureStorage {
     }
   }
 
+  /// Close internal http client.
+  void close({bool force = false}) {
+    _client.close(force: force);
+  }
+
   @override
   String toString() {
     return config.toString();
@@ -70,13 +78,14 @@ class AzureStorage {
         queryParameters: queryParameters);
   }
 
-  String _canonicalHeaders(Map<String, String> headers) {
-    var keys = headers.keys
-        .where((i) => i.startsWith('x-ms-'))
-        .map((i) => '$i:${headers[i]}\n')
-        .toList();
-    keys.sort();
-    return keys.join();
+  String _canonicalHeaders(http.HttpHeaders headers) {
+    final lines = [];
+    headers.forEach((name, values) {
+      if (!name.startsWith('x-ms-')) return;
+      lines.add('$name:${values.join()}\n');
+    });
+    lines.sort();
+    return lines.join();
   }
 
   String _canonicalResources(Map<String, String> items) {
@@ -88,12 +97,12 @@ class AzureStorage {
     return keys.map((i) => '\n$i:${items[i]}').join();
   }
 
-  void sign(http.Request request) {
-    request.headers['x-ms-date'] = formatHttpDate(DateTime.now());
-    request.headers['x-ms-version'] = '2019-12-12';
+  void sign(http.HttpClientRequest request) {
+    request.headers.set('x-ms-date', formatHttpDate(DateTime.now()));
+    request.headers.set('x-ms-version', '2019-12-12');
     var ce = request.headers['Content-Encoding'] ?? '';
     var cl = request.headers['Content-Language'] ?? '';
-    var cz = request.contentLength == 0 ? '' : '${request.contentLength}';
+    var cz = request.contentLength <= 0 ? '' : '${request.contentLength}';
     var cm = request.headers['Content-MD5'] ?? '';
     var ct = request.headers['Content-Type'] ?? '';
     var dt = request.headers['Date'] ?? '';
@@ -103,16 +112,16 @@ class AzureStorage {
     var ius = request.headers['If-Unmodified-Since'] ?? '';
     var ran = request.headers['Range'] ?? '';
     var chs = _canonicalHeaders(request.headers);
-    var crs = _canonicalResources(request.url.queryParameters);
+    var crs = _canonicalResources(request.uri.queryParameters);
     var name = config[accountName];
-    var path = request.url.path;
+    var path = request.uri.path;
     var sig =
         '${request.method}\n$ce\n$cl\n$cz\n$cm\n$ct\n$dt\n$ims\n$imt\n$inm\n$ius\n$ran\n$chs/$name$path$crs';
     var mac = crypto.Hmac(crypto.sha256, accountKey);
     var digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
     var auth = 'SharedKey $name:$digest';
-    request.headers['Authorization'] = auth;
-    //print(sig);
+    request.headers.set('Authorization', auth);
+    // print('sig=\n$sig\n');
   }
 
   (String, String?) _splitPathSegment(String path) {
@@ -124,10 +133,10 @@ class AzureStorage {
 
   /// List Blobs. (Raw API)
   ///
-  /// You cat use `await response.stream.bytesToString();` to get blob listing as XML format.
-  Future<http.StreamedResponse> listBlobsRaw(String path) async {
+  /// You cat use `(await response.transform(Utf8Decoder()).toList()).join();` to get blob listing as XML format.
+  Future<http.HttpClientResponse> listBlobsRaw(String path) async {
     var (container, rest) = _splitPathSegment(path);
-    var request = http.Request(
+    var request = await _client.openUrl(
         'GET',
         uri(path: container, queryParameters: {
           "restype": "container",
@@ -135,21 +144,21 @@ class AzureStorage {
           if (rest != null) "prefix": rest,
         }));
     sign(request);
-    return request.send();
+    return request.close();
   }
 
   /// Get Blob.
-  Future<http.StreamedResponse> getBlob(String path) async {
-    var request = http.Request('GET', uri(path: path));
+  Future<http.HttpClientResponse> getBlob(String path) async {
+    final request = await _client.openUrl('GET', uri(path: path));
     sign(request);
-    return request.send();
+    return request.close();
   }
 
   /// Delete Blob
-  Future<http.StreamedResponse> deleteBlob(String path) async {
-    var request = http.Request('DELETE', uri(path: path));
+  Future<http.HttpClientResponse> deleteBlob(String path) async {
+    var request = await _client.openUrl('DELETE', uri(path: path));
     sign(request);
-    return request.send();
+    return request.close();
   }
 
   String _signedExpiry(DateTime? expiry) {
@@ -195,55 +204,70 @@ class AzureStorage {
       String? contentType,
       BlobType type = BlobType.blockBlob,
       Map<String, String>? headers}) async {
-    var request = http.Request('PUT', uri(path: path));
-    request.headers['x-ms-blob-type'] = type.displayName;
+    var request = await _client.openUrl('PUT', uri(path: path));
+    request.headers.set('x-ms-blob-type', type.displayName);
     if (headers != null) {
       headers.forEach((key, value) {
-        request.headers['x-ms-meta-$key'] = value;
+        request.headers.set('x-ms-meta-$key', value);
       });
     }
-    if (contentType != null) request.headers['content-type'] = contentType;
+    if (contentType != null) {
+      request.headers.contentType = ContentType.parse(contentType);
+    }
     if (type == BlobType.blockBlob) {
       if (bodyBytes != null) {
-        request.bodyBytes = bodyBytes;
+        request.headers.contentLength = bodyBytes.length;
+        sign(request);
+        request.add(bodyBytes);
       } else if (body != null) {
-        request.body = body;
+        final bytes = utf8.encode(body);
+        request.headers.contentLength = bytes.length;
+        sign(request);
+        request.add(bytes);
+      } else {
+        sign(request);
       }
     } else {
-      request.body = '';
+      sign(request);
     }
-    sign(request);
-    var res = await request.send();
+    var res = await request.close();
     if (res.statusCode == 201) {
-      await res.stream.drain();
+      await res.drain();
       if (type == BlobType.appendBlob && (body != null || bodyBytes != null)) {
         await appendBlock(path, body: body, bodyBytes: bodyBytes);
       }
       return;
     }
 
-    var message = await res.stream.bytesToString();
+    var message = (await res.transform(const Utf8Decoder()).toList()).join();
+    print(message);
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
   /// Append block to blob.
   Future<void> appendBlock(String path,
       {String? body, Uint8List? bodyBytes}) async {
-    var request = http.Request(
-        'PUT', uri(path: path, queryParameters: {'comp': 'appendblock'}));
+    var request = await _client.openUrl(
+      'PUT',
+      uri(path: path, queryParameters: {'comp': 'appendblock'}),
+    );
     if (bodyBytes != null) {
-      request.bodyBytes = bodyBytes;
+      request.headers.contentLength = bodyBytes.length;
+      sign(request);
+      request.add(bodyBytes);
     } else if (body != null) {
-      request.body = body;
+      final bytes = utf8.encode(body);
+      request.headers.contentLength = bytes.length;
+      sign(request);
+      request.add(bytes);
     }
-    sign(request);
-    var res = await request.send();
+    var res = await request.close();
     if (res.statusCode == 201) {
-      await res.stream.drain();
+      await res.drain();
       return;
     }
 
-    var message = await res.stream.bytesToString();
+    var message = (await res.transform(const Utf8Decoder()).toList()).join();
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 }
