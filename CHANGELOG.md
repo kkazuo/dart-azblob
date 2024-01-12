@@ -1,3 +1,8 @@
+## 4.0.0
+
+- Revert version to 2.6.0 line.
+- Supports Flutter Web.
+
 ## 3.0.1
 
 - Fix auth header signature generation code. (Thanks @geoffwc Geoff Webber-Cross. He found the problem and suggested improvements.)

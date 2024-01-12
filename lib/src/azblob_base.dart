@@ -122,6 +122,11 @@ class AzureStorage {
     return (p.substring(0, i), p.substring(i + 1));
   }
 
+  /// Close internal http client.
+  void close({bool force = false}) {
+    // do nothing. just for backward compatibility.
+  }
+
   /// List Blobs. (Raw API)
   ///
   /// You cat use `await response.stream.bytesToString();` to get blob listing as XML format.
