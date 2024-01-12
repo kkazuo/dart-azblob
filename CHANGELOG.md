@@ -1,3 +1,11 @@
+## 3.0.1
+
+- Fix auth header signature generation code. (Thanks @geoffwc Geoff Webber-Cross. He found the problem and suggested improvements.)
+
+## 3.0.0
+
+- BREAKING CHANGE! Switch to universal_io from http for network I/O.
+
 ## 2.6.0
 
 - Add list blobs API (Raw XML format)
