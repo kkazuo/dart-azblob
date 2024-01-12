@@ -101,17 +101,17 @@ class AzureStorage {
   void sign(http.HttpClientRequest request) {
     request.headers.set('x-ms-date', formatHttpDate(DateTime.now()));
     request.headers.set('x-ms-version', '2019-12-12');
-    final ce = request.headers.value('Content-Encoding') ?? '';
-    final cl = request.headers.value('Content-Language') ?? '';
+    final ce = request.headers['Content-Encoding'] ?? '';
+    final cl = request.headers['Content-Language'] ?? '';
     final cz = request.contentLength <= 0 ? '' : '${request.contentLength}';
-    final cm = request.headers.value('Content-MD5') ?? '';
-    final ct = request.headers.value('Content-Type') ?? '';
-    final dt = request.headers.value('Date') ?? '';
-    final ims = request.headers.value('If-Modified-Since') ?? '';
-    final imt = request.headers.value('If-Match') ?? '';
-    final inm = request.headers.value('If-None-Match') ?? '';
-    final ius = request.headers.value('If-Unmodified-Since') ?? '';
-    final ran = request.headers.value('Range') ?? '';
+    final cm = request.headers['Content-MD5'] ?? '';
+    final ct = request.headers['Content-Type'] ?? '';
+    final dt = request.headers['Date'] ?? '';
+    final ims = request.headers['If-Modified-Since'] ?? '';
+    final imt = request.headers['If-Match'] ?? '';
+    final inm = request.headers['If-None-Match'] ?? '';
+    final ius = request.headers['If-Unmodified-Since'] ?? '';
+    final ran = request.headers['Range'] ?? '';
     final chs = _canonicalHeaders(request.headers);
     final crs = _canonicalResources(request.uri.queryParameters);
     final name = config[accountName];
