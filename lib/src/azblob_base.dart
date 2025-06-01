@@ -59,6 +59,16 @@ class AzureStorage {
   }
 
   Uri uri({String path = '/', Map<String, String>? queryParameters}) {
+    var blobEndpoint = config['BlobEndpoint'];
+    if (blobEndpoint != null) {
+      // Parse from explicit endpoint (like Azurite's BlobEndpoint)
+      var base = Uri.parse(blobEndpoint);
+      return base.replace(
+        path: '${base.path}$path',
+        queryParameters: queryParameters,
+      );
+    }
+
     var scheme = config[defaultEndpointsProtocol] ?? 'https';
     var suffix = config[endpointSuffix] ?? 'core.windows.net';
     var name = config[accountName];
