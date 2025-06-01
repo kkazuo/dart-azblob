@@ -1,3 +1,8 @@
+## 4.1.0
+
+- Add supports `BlobEndpoint` for connection string to support local emulators like Azurite; thanks Floyd Butselaar
+- Dart SDK >=3.8.0
+
 ## 4.0.0
 
 - Revert version to 2.6.0 line.
