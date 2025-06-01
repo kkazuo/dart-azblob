@@ -7,8 +7,7 @@ import 'package:http_parser/http_parser.dart';
 /// Blob type
 enum BlobType {
   blockBlob('BlockBlob'),
-  appendBlob('AppendBlob'),
-  ;
+  appendBlob('AppendBlob');
 
   const BlobType(this.displayName);
 
@@ -64,10 +63,11 @@ class AzureStorage {
     var suffix = config[endpointSuffix] ?? 'core.windows.net';
     var name = config[accountName];
     return Uri(
-        scheme: scheme,
-        host: '$name.blob.$suffix',
-        path: path,
-        queryParameters: queryParameters);
+      scheme: scheme,
+      host: '$name.blob.$suffix',
+      path: path,
+      queryParameters: queryParameters,
+    );
   }
 
   String _canonicalHeaders(Map<String, String> headers) {
@@ -133,12 +133,16 @@ class AzureStorage {
   Future<http.StreamedResponse> listBlobsRaw(String path) async {
     var (container, rest) = _splitPathSegment(path);
     var request = http.Request(
-        'GET',
-        uri(path: container, queryParameters: {
+      'GET',
+      uri(
+        path: container,
+        queryParameters: {
           "restype": "container",
           "comp": "list",
           if (rest != null) "prefix": rest,
-        }));
+        },
+      ),
+    );
     sign(request);
     return request.send();
   }
@@ -173,7 +177,8 @@ class AzureStorage {
     var signedVersion = '2012-02-12';
     var name = config[accountName];
     var canonicalizedResource = '/$name$path';
-    var str = '$signedPermissions\n'
+    var str =
+        '$signedPermissions\n'
         '$signedStart\n'
         '$signedExpiry\n'
         '$canonicalizedResource\n'
@@ -181,25 +186,30 @@ class AzureStorage {
         '$signedVersion';
     var mac = crypto.Hmac(crypto.sha256, accountKey);
     var sig = base64Encode(mac.convert(utf8.encode(str)).bytes);
-    return uri(path: path, queryParameters: {
-      'sr': 'b',
-      'sp': signedPermissions,
-      'se': signedExpiry,
-      'sv': signedVersion,
-      'spr': 'https',
-      'sig': sig,
-    });
+    return uri(
+      path: path,
+      queryParameters: {
+        'sr': 'b',
+        'sp': signedPermissions,
+        'se': signedExpiry,
+        'sv': signedVersion,
+        'spr': 'https',
+        'sig': sig,
+      },
+    );
   }
 
   /// Put Blob.
   ///
   /// `body` and `bodyBytes` are exclusive and mandatory.
-  Future<void> putBlob(String path,
-      {String? body,
-      Uint8List? bodyBytes,
-      String? contentType,
-      BlobType type = BlobType.blockBlob,
-      Map<String, String>? headers}) async {
+  Future<void> putBlob(
+    String path, {
+    String? body,
+    Uint8List? bodyBytes,
+    String? contentType,
+    BlobType type = BlobType.blockBlob,
+    Map<String, String>? headers,
+  }) async {
     var request = http.Request('PUT', uri(path: path));
     request.headers['x-ms-blob-type'] = type.displayName;
     if (headers != null) {
@@ -232,10 +242,15 @@ class AzureStorage {
   }
 
   /// Append block to blob.
-  Future<void> appendBlock(String path,
-      {String? body, Uint8List? bodyBytes}) async {
+  Future<void> appendBlock(
+    String path, {
+    String? body,
+    Uint8List? bodyBytes,
+  }) async {
     var request = http.Request(
-        'PUT', uri(path: path, queryParameters: {'comp': 'appendblock'}));
+      'PUT',
+      uri(path: path, queryParameters: {'comp': 'appendblock'}),
+    );
     if (bodyBytes != null) {
       request.bodyBytes = bodyBytes;
     } else if (body != null) {
